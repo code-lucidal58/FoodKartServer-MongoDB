@@ -32,11 +32,13 @@ class UsersController < ApplicationController
   def signup
     @user = User.new(params.require(:user).permit(:name, :email, :phone, :password))
     if @user.save
-      @result={success: true, error: nil}
-      # render :show, status: :created, location: @user
+      # salt = BCrypt::Engine.generate_salt
+      # @user.salt=salt
+      # @user.password = Digest::SHA2.hexdigest(salt + @user.password)
+      # @user.access_token=Digest::SHA1.hexdigest([Time.now, rand].join)
+      @result={success: :true, error: nil}
     else
-      @result={success: false, error: @user.errors}
-      # render json: @user.errors, status: :unprocessable_entity
+      @result={success: :false, error: @user.errors}
     end
     render json: @result
   end
@@ -51,6 +53,9 @@ class UsersController < ApplicationController
     else
       if @user.password==params[:password]
         @success=true
+      else
+        @success= false
+        @error = "Password does not match"
       end
     end
   end
