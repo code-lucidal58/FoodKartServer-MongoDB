@@ -2,8 +2,10 @@ Rails.application.routes.draw do
   resources :users, defaults: {format: :json} do
     collection do
       get 'all'
+      get 'logout'
       post 'signup'
       post 'login'
+      post 'forgot_password'
       delete 'delete'
     end
     # member do

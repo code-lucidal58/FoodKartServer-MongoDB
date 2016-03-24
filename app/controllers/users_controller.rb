@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   skip_before_action :verify_authenticity_token
-  before_action :set_user, only: [:update, :delete, :deactivate]
+  before_action :set_user, only: [:update, :delete, :deactivate, :logout, :forgot_password]
 
   # GET /users
   # show only those records which are active
@@ -55,15 +55,7 @@ class UsersController < ApplicationController
     else
       @exist_user = User.any_of({email: @user.email}, {phone: @user.phone}).first
       if @exist_user.active
-        @email = @user.errors['email'].first
-        @phone = @user.errors['phone'].first
-        if @email.nil?
-          @error = 'Phone number is already taken'
-        elsif @phone.nil?
-          @error = 'Email Id is already taken'
-        else
-          @error = 'Phone number and Email Id is already taken'
-        end
+        validation_check
       else
         @error = 'Account exists.. Want to make it live?'
       end
@@ -75,35 +67,59 @@ class UsersController < ApplicationController
   end
 
   # POST /users/login
-  #returns success and data
   def login
-    @user=User.find_by :email => params[:email], :active => true
+    @user=User.find_by :email => params[:email]
     if @user.nil?
-      @success = false
-      @error = "Email does not exist"
+      @result = {success: false, error: 'Email does not exist'}
     else
       if @user.password == Digest::SHA2.hexdigest(@user.salt + params[:password])
-        @success=true
+        unless @user.active
+          @user.active = true
+        end
+        @user.access_token = Digest::SHA1.hexdigest([Time.now, rand].join)
+        @user.save
+        @result = {success: true,
+                   data: {access_token: @user.access_token,
+                          id: @user.id.as_json,
+                          name: @user.name,
+                          email: @user.email,
+                          phone: @user.phone,
+                          address: @user.address}}
       else
-        @success= false
-        @error = "Password does not match"
+        @result = {success: false, error: 'Password does not match'}
       end
     end
-    render json: @user
+    render json: @result
+  end
+
+  #GET /users/logout
+  def logout
+    if @user.nil?
+      @result = {success: false, error: 'Invalid user'}
+    else
+      @user.access_token = nil
+      @user.save
+      @result = {success: true}
+    end
+    render json: @result
   end
 
   # PATCH /users
   # to update existing records
   def update
-    respond_to do |format|
-      if @user.update(params.require(:user).permit(:name, :email, :address, :phone))
-        format.html { redirect_to @user, notice: 'User was successfully updated.' }
-        format.json { render :show, status: :ok, location: @user }
-      else
-        format.html { render :edit }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
+    if @user.update(params.require(:user).permit(:name, :email, :address, :phone))
+      @result = {success: true,
+                 data: {access_token: @user.access_token,
+                        id: @user.id.as_json,
+                        name: @user.name,
+                        email: @user.email,
+                        phone: @user.phone,
+                        address: @user.address}}
+    else
+      validation_check
+      @result = {success: false, error: @error}
     end
+    render json: @result
   end
 
   # DELETE /users
@@ -126,15 +142,38 @@ class UsersController < ApplicationController
     render json: {success: true}
   end
 
+  # POST /users/forgot_password
+  def forgot_password
+    if @user.nil?
+      @result = {success: false, error: 'Invalid user'}
+    else
+      if @user.password == Digest::SHA2.hexdigest(@user.salt + params[:current_password])
+        @user.password = Digest::SHA2.hexdigest(@user.salt + params[:new_password])
+        @user.save
+        @result ={success: true}
+      else
+        @result = {success: false, error: 'Password does not match'}
+      end
+    end
+    render json: @result
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_user
     @user = User.find_by access_token: request.headers['HTTP_ACCESS_TOKEN']
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
-  def user_params
-    params.require(:user).permit(:name, :email, :address, :phone, :password)
+  def validation_check
+    @email = @user.errors['email'].first
+    @phone = @user.errors['phone'].first
+    if @email.nil?
+      @error = 'Phone number is already taken'
+    elsif @phone.nil?
+      @error = 'Email Id is already taken'
+    else
+      @error = 'Phone number and Email Id is already taken'
+    end
   end
 
 end

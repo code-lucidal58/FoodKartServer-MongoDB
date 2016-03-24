@@ -1,0 +1,41 @@
+ALL USERS HAVING ACTIVE ACCOUNT
+Request: GET : /users
+Response (success false): {"success":false} //impling no users found
+Response (success true):  {"success":true,"data":[{"access_token":"40b4f544596659a8d4eb2d4c19b6eb4d2295a042","id":{"$oid":"56f3a1d4731b3a253c000018"},"name":"q","email":"w","phone":"e","address":"r","created_at":"2016-03-24T08:14:12.280Z","updated_at":"2016-03-24T08:14:12.291Z"},{"access_token":"8efb01478dff867473c50f1bc81d0b1cfcb7539b","id":{"$oid":"56f3b9a5731b3a253c000019"},"name":"a","email":"s","phone":"d","address":"f","created_at":"2016-03-24T09:55:49.812Z","updated_at":"2016-03-24T09:55:49.822Z"}]}
+
+SIGNUP
+=> Request: POST : localhost:3000/users/signup {"user": {"name":"z","email":"x","phone":"c","password":"v"}} //other attributes as per your convenience
+=> Response(success false): {"success":false,"error":"Account exists.. Want to make it live?"}
+							{"success":false,"error":"Phone number and Email Id is already taken"}
+							{"success":false,"error":"Phone number is already taken"}
+							{"success":false,"error":"Email Id is already taken"}
+=> Response(success true):	{"success":true,"data":{"access_token":"8efb01478dff867473c50f1bc81d0b1cfcb7539b","id":{"$oid":"56f3b9a5731b3a253c000019"},"name":"a","email":"s","phone":"d","address":"f"}}
+
+LOGIN
+=> Request: POST : /users/login {"email":"w","password":"t"}
+=> Response(success false): {"success":false,"error":"Email does not exist"}
+							{"success":false,"error":"Password does not match"}
+=> Response(success true): {"success":true,"data":{"access_token":"24bc85fc0f4a87b4f047ae04b066926471a2d40e","id":{"$oid":"56f3a1d4731b3a253c000018"},"name":"q","email":"w","phone":"e","address":"r"}}
+
+UPDATE
+=> Request : PATCH /users {"user":{"name":"q","email":"w","phone":"e","address":"r"}} access_token in header
+=> Response(success true): {"success":true,"data":{"access_token":"880a4b01186b566c98ce2aa76a292faf22f3ffbc","id":{"$oid":"56f3a1d4731b3a253c000018"},"name":"q","email":"w","phone":"e","address":"r"}}
+=> Response(success false): {"success":false,"error":"Phone number and Email Id is already taken"}
+							{"success":false,"error":"Phone number is already taken"}
+							{"success":false,"error":"Email Id is already taken"}
+
+FORGOT PASSWORD
+=> Request : POST : /users/forgot_password {"current_password": "g","new_password": "h"} access_token in header
+=> Response(success true): {"success":true}
+=> Response(success false): {"success":false,"error":"Password does not match"}
+							{"success":false,"error":"Invalid user"} for incorrect access_token
+
+LOGOUT
+=> Request: GET : /users/logout access_token in header
+=> Response(success true): {"success":true}
+=> Response(success false): {"success":false,"error":"Invalid user"}
+
+DEACTIVATE
+=> Request: DELETE : /users access_token in header of request
+=> Response (success true): {"success":true}
+=> Response (success false): {"success":false,"error":"User does not exist"} //incase of incorrect access_token
