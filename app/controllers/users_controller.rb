@@ -1,19 +1,24 @@
 class UsersController < ApplicationController
   skip_before_action :verify_authenticity_token
-  before_action :set_user, only: [:show, :edit, :update]
+  before_action :set_user, only: [:update, :delete, :deactivate]
 
   # GET /users
   # show only those records which are active
   def index
     @users = User.where :active => true
-    @success=true
+    if @users.size == 0
+      @success = false
+    else
+      @success = true
+    end
   end
 
   # GET /users/all
-  # shows all record irrestive of its being active
+  # shows all record irrespective of its being active
+  # made for debugging purpose
   def all
     @users = User.all
-    @success=true
+    @success = true
     render action: :index
   end
 
@@ -38,27 +43,31 @@ class UsersController < ApplicationController
       salt = BCrypt::Engine.generate_salt
       @user.salt=salt
       @user.password = Digest::SHA2.hexdigest(salt + @user.password)
-      @user.access_token=Digest::SHA1.hexdigest([Time.now, rand].join)
+      @user.access_token = Digest::SHA1.hexdigest([Time.now, rand].join)
       @user.save
-      @result={success: true, data: @user}
+      @result = {success: true,
+                 data: {access_token: @user.access_token,
+                        id: @user.id.as_json,
+                        name: @user.name,
+                        email: @user.email,
+                        phone: @user.phone,
+                        address: @user.address}}
     else
-      @exist_user= User.where email: @user.email | phone: @user.phone
-      if @user.active
-        @email=@user.errors['email'].first
-        @phone=@user.errors['phone'].first
+      @exist_user = User.any_of({email: @user.email}, {phone: @user.phone}).first
+      if @exist_user.active
+        @email = @user.errors['email'].first
+        @phone = @user.errors['phone'].first
         if @email.nil?
           @error = 'Phone number is already taken'
         elsif @phone.nil?
-
           @error = 'Email Id is already taken'
         else
           @error = 'Phone number and Email Id is already taken'
         end
-        @result = {success: false , error: @error}
       else
-        @result = {success: false, error: 'Account exists.. Want to make it live?'}
+        @error = 'Account exists.. Want to make it live?'
       end
-
+      @result = {success: false, error: @error}
     end
     # this line automatically converts @result to json. No need for additional .json.jbuilder in views folder.
     #that file is used to introduce additional formatting like applying conditions or forming nested json objects
@@ -100,7 +109,6 @@ class UsersController < ApplicationController
   # DELETE /users
   # to deactivate an account
   def deactivate
-    @user=User.find_by :access_token => request.headers["HTTP_ACCESS_TOKEN"]
     if @user.nil?
       @result={:success => false, :error => "User does not exist"}
     else
@@ -114,7 +122,6 @@ class UsersController < ApplicationController
   # DELETE /users/delete
   # to complete delete a record from database
   def delete
-    @user = User.find_by access_token: request.headers['HTTP_ACCESS_TOKEN']
     @user.destroy
     render json: {success: true}
   end
@@ -122,7 +129,7 @@ class UsersController < ApplicationController
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_user
-    @user = User.find(params[:id])
+    @user = User.find_by access_token: request.headers['HTTP_ACCESS_TOKEN']
   end
 
   # Never trust parameters from the scary internet, only allow the white list through.

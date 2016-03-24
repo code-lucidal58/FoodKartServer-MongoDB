@@ -14,6 +14,6 @@ class User
   field :active, type: Mongoid::Boolean, default: true
 
   #validations
-  validates_uniqueness_of :email
+  validates_uniqueness_of :email, :case_sensitive => false
   validates_uniqueness_of :phone
 end
