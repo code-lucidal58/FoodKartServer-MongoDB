@@ -1,28 +1,13 @@
-== README
+This is an API made of Ruby on Rails 
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Ruby version: 2.2.4p230 
 
-Things you may want to cover:
+Rails version: 4.2.6
 
-* Ruby version
+Database used is MongoDB
+Version: 3.2.4
 
-* System dependencies
+This API is made for the android app FoodKart
+It can also be used for study purpose, to learn integration of MongoDB with Ruby on Rails.
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+Refer the documentation file for the usage of the API
