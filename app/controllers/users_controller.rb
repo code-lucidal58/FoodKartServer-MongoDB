@@ -109,8 +109,7 @@ class UsersController < ApplicationController
   def update
     if @user.update(params.require(:user).permit(:name, :email, :address, :phone))
       @result = {success: true,
-                 data: {access_token: @user.access_token,
-                        id: @user.id.as_json,
+                 data: {id: @user.id.as_json,
                         name: @user.name,
                         email: @user.email,
                         phone: @user.phone,

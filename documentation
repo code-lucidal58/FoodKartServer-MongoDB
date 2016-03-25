@@ -19,7 +19,7 @@ LOGIN
 
 UPDATE
 => Request : PATCH /users {"user":{"name":"q","email":"w","phone":"e","address":"r"}} access_token in header
-=> Response(success true): {"success":true,"data":{"access_token":"880a4b01186b566c98ce2aa76a292faf22f3ffbc","id":{"$oid":"56f3a1d4731b3a253c000018"},"name":"q","email":"w","phone":"e","address":"r"}}
+=> Response(success true): {"success":true,"data":{"id":{"$oid":"56f3a1d4731b3a253c000018"},"name":"q","email":"w","phone":"e","address":"r"}}
 => Response(success false): {"success":false,"error":"Phone number and Email Id is already taken"}
 							{"success":false,"error":"Phone number is already taken"}
 							{"success":false,"error":"Email Id is already taken"}
