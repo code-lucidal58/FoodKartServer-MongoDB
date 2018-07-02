@@ -1,8 +1,8 @@
 This is an API made of Ruby on Rails 
 
-Ruby version: 2.2.4p230 
+Ruby version: 2.2.4p960
 
-Rails version: 4.2.6
+Rails version: 5.2.0
 
 Database used is MongoDB
 Version: 3.2.4
